@@ -59,6 +59,7 @@ export default {
     titleCompany: 'Company contacts',
     titlePersonal: 'Personal contacts',
     titleArchive: 'Archive',
+    searchPlaceholder: 'Search all contacts...',
   },
   form: {
     newContact: 'New contact',

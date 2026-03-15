@@ -7,11 +7,13 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import Input from '@/components/ui/Input.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useSectionsStore } from '@/stores/sections'
 import { useTagsStore } from '@/stores/tags'
 import { Sun, Moon, Search, X } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const { isDark, toggle: toggleTheme } = useTheme()
 const sectionsStore = useSectionsStore()
 const tagsStore = useTagsStore()
@@ -61,7 +63,7 @@ onMounted(async () => {
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             v-model="globalSearch"
-            placeholder="Cerca in tutti i contatti..."
+            :placeholder="t('contacts.searchPlaceholder')"
             class="pl-9 h-9"
             @input="onGlobalSearch"
           />

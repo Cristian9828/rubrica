@@ -59,6 +59,7 @@ export default {
     titleCompany: 'Contatti aziendali',
     titlePersonal: 'Contatti personali',
     titleArchive: 'Archivio',
+    searchPlaceholder: 'Cerca in tutti i contatti...',
   },
   form: {
     newContact: 'Nuovo contatto',
