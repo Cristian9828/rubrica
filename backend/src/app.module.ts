@@ -15,9 +15,9 @@ import { UserSetting } from './user-settings/user-setting.entity';
 
 const dbType = (process.env.DB_TYPE as 'sqlite' | 'postgres') || 'sqlite';
 
-// In produzione (NODE_ENV=production) la sincronizzazione automatica è disabilitata
-// per evitare modifiche accidentali allo schema. In sviluppo locale rimane attiva.
-const synchronize = process.env.NODE_ENV !== 'production';
+// Synchronize è sempre attivo: l'app è self-hosted (singola istanza, volume dedicato)
+// e non usa migration — TypeORM gestisce lo schema ad ogni avvio.
+const synchronize = true;
 
 const sqliteConfig = {
   type: 'sqlite' as const,
