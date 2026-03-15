@@ -1,0 +1,46 @@
+services:
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      # JWT_SECRET: se non specificato, viene generato automaticamente
+      # e salvato in data/secret.key al primo avvio.
+      # Per ambienti con più repliche, impostarlo esplicitamente:
+      # - JWT_SECRET=<stringa-casuale-lunga>
+
+      # Database SQLite (default) — configurabile via wizard al primo avvio.
+      # Per PostgreSQL esterno (senza wizard), scommentare:
+      # - DB_TYPE=postgres
+      # - DB_HOST=postgres
+      # - DB_PORT=5432
+      # - DB_USER=rubrica
+      # - DB_PASS=password
+      # - DB_NAME=rubrica
+      - DB_PATH=/app/data/rubrica.db
+    volumes:
+      - rubrica-data:/app/data
+
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # Esempio servizio PostgreSQL da usare insieme al backend
+  # (decommentare se si vuole Postgres gestito da Docker Compose)
+  # postgres:
+  #   image: postgres:16-alpine
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: rubrica
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: rubrica
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  rubrica-data:
+  # postgres-data:

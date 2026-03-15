@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER:-rubrica}
+      - POSTGRES_PASSWORD=${DB_PASS:-rubrica}
+      - POSTGRES_DB=${DB_NAME:-rubrica}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-rubrica}
+      - DB_PASS=${DB_PASS:-rubrica}
+      - DB_NAME=${DB_NAME:-rubrica}
+      - JWT_SECRET=${JWT_SECRET:-change-me-to-a-random-secret}
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pg-data:
