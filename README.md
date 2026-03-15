@@ -8,6 +8,17 @@
 
 Applicazione web self-hosted per la gestione dei contatti personali e aziendali.
 
+## Screenshots
+
+**Vista principale — card**
+![Contacts cards view](docs/screenshots/contacts-cards.png)
+
+**Vista principale — tabella**
+![Contacts table view](docs/screenshots/contacts-table.png)
+
+**Dettaglio contatto**
+![Contact detail](docs/screenshots/contact-detail.png)
+
 ## Funzionalità
 
 - **Contatti** — nome, telefoni, email, sito, foto, indirizzo, note, tag, sezioni
