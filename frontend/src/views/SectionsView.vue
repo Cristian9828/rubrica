@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineComponent, h, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSectionsStore } from '@/stores/sections';
 import { useAuthStore } from '@/stores/auth';
@@ -10,6 +10,93 @@ import Dialog from '@/components/ui/Dialog.vue';
 import { toast } from 'vue-sonner';
 import { Plus, Pencil, Trash2, Check, X, ChevronRight, AlertTriangle } from 'lucide-vue-next';
 import { SECTION_ICONS, getIconComponent } from '@/lib/sectionIcons';
+import type { Section } from '@/stores/sections';
+
+const IconPicker = defineComponent({
+  name: 'IconPicker',
+  props: { modelValue: { type: String as () => string | null, default: null } },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => h('div', { class: 'grid grid-cols-6 gap-1.5' },
+      SECTION_ICONS.map(({ name, component }) =>
+        h('button', {
+          type: 'button',
+          title: name,
+          class: [
+            'flex items-center justify-center p-2 rounded-md border transition-colors',
+            props.modelValue === name
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'hover:bg-accent border-transparent',
+          ],
+          onClick: () => emit('update:modelValue', props.modelValue === name ? null : name),
+        }, [h(component, { class: 'h-4 w-4' })])
+      )
+    );
+  },
+});
+
+const SectionRow = defineComponent({
+  name: 'SectionRow',
+  props: {
+    section: { type: Object as () => Section, required: true },
+    editing: { type: Boolean, default: false },
+    editName: { type: String, default: '' },
+    editIcon: { type: String as () => string | null, default: null },
+  },
+  emits: ['start-edit', 'save-edit', 'cancel-edit', 'delete', 'update:editName', 'update:editIcon'],
+  setup(props, { emit }) {
+    const iconComp = computed(() => getIconComponent(props.section.icon));
+
+    return () => {
+      if (props.editing) {
+        return h('div', { class: 'space-y-3 rounded-md border p-3' }, [
+          h('div', { class: 'flex items-center gap-2' }, [
+            h(Input, {
+              modelValue: props.editName,
+              class: 'flex-1 h-8 text-sm',
+              autofocus: true,
+              'onUpdate:modelValue': (v: string) => emit('update:editName', v),
+              onKeydown: (e: KeyboardEvent) => {
+                if (e.key === 'Enter') emit('save-edit');
+                if (e.key === 'Escape') emit('cancel-edit');
+              },
+            }),
+            h('button', { class: 'p-1 text-green-600 hover:text-green-700', onClick: () => emit('save-edit') },
+              [h(Check, { class: 'h-4 w-4' })]),
+            h('button', { class: 'p-1 text-muted-foreground hover:text-foreground', onClick: () => emit('cancel-edit') },
+              [h(X, { class: 'h-4 w-4' })]),
+          ]),
+          h('div', { class: 'grid grid-cols-6 gap-1.5' },
+            SECTION_ICONS.map(({ name, component }) =>
+              h('button', {
+                type: 'button',
+                title: name,
+                class: [
+                  'flex items-center justify-center p-2 rounded-md border transition-colors',
+                  props.editIcon === name
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'hover:bg-accent border-transparent',
+                ],
+                onClick: () => emit('update:editIcon', props.editIcon === name ? null : name),
+              }, [h(component, { class: 'h-4 w-4' })])
+            )
+          ),
+        ]);
+      }
+
+      return h('div', { class: 'flex items-center gap-3 rounded-md border px-3 py-2.5' }, [
+        iconComp.value
+          ? h(iconComp.value, { class: 'h-4 w-4 text-muted-foreground shrink-0' })
+          : h(ChevronRight, { class: 'h-4 w-4 text-muted-foreground shrink-0' }),
+        h('span', { class: 'flex-1 text-sm font-medium' }, props.section.name),
+        h('button', { class: 'p-1 text-muted-foreground hover:text-foreground', onClick: () => emit('start-edit') },
+          [h(Pencil, { class: 'h-3.5 w-3.5' })]),
+        h('button', { class: 'p-1 text-muted-foreground hover:text-destructive', onClick: () => emit('delete') },
+          [h(Trash2, { class: 'h-3.5 w-3.5' })]),
+      ]);
+    };
+  },
+});
 
 const { t } = useI18n();
 const sectionsStore = useSectionsStore();
@@ -182,100 +269,3 @@ async function doDelete() {
     </Dialog>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent, h, computed } from 'vue';
-import Input from '@/components/ui/Input.vue';
-import { Button } from '@/components/ui/button';
-import { Check, X, Pencil, Trash2, ChevronRight } from 'lucide-vue-next';
-import { SECTION_ICONS, getIconComponent } from '@/lib/sectionIcons';
-import type { Section } from '@/stores/sections';
-
-const IconPicker = defineComponent({
-  name: 'IconPicker',
-  props: { modelValue: { type: String as () => string | null, default: null } },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    return () => h('div', { class: 'grid grid-cols-6 gap-1.5' },
-      SECTION_ICONS.map(({ name, component }) =>
-        h('button', {
-          type: 'button',
-          title: name,
-          class: [
-            'flex items-center justify-center p-2 rounded-md border transition-colors',
-            props.modelValue === name
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'hover:bg-accent border-transparent',
-          ],
-          onClick: () => emit('update:modelValue', props.modelValue === name ? null : name),
-        }, [h(component, { class: 'h-4 w-4' })])
-      )
-    );
-  },
-});
-
-const SectionRow = defineComponent({
-  name: 'SectionRow',
-  props: {
-    section: { type: Object as () => Section, required: true },
-    editing: { type: Boolean, default: false },
-    editName: { type: String, default: '' },
-    editIcon: { type: String as () => string | null, default: null },
-  },
-  emits: ['start-edit', 'save-edit', 'cancel-edit', 'delete', 'update:editName', 'update:editIcon'],
-  setup(props, { emit }) {
-    const iconComp = computed(() => getIconComponent(props.section.icon));
-
-    return () => {
-      if (props.editing) {
-        return h('div', { class: 'space-y-3 rounded-md border p-3' }, [
-          h('div', { class: 'flex items-center gap-2' }, [
-            h(Input, {
-              modelValue: props.editName,
-              class: 'flex-1 h-8 text-sm',
-              autofocus: true,
-              'onUpdate:modelValue': (v: string) => emit('update:editName', v),
-              onKeydown: (e: KeyboardEvent) => {
-                if (e.key === 'Enter') emit('save-edit');
-                if (e.key === 'Escape') emit('cancel-edit');
-              },
-            }),
-            h('button', { class: 'p-1 text-green-600 hover:text-green-700', onClick: () => emit('save-edit') },
-              [h(Check, { class: 'h-4 w-4' })]),
-            h('button', { class: 'p-1 text-muted-foreground hover:text-foreground', onClick: () => emit('cancel-edit') },
-              [h(X, { class: 'h-4 w-4' })]),
-          ]),
-          h('div', { class: 'grid grid-cols-6 gap-1.5' },
-            SECTION_ICONS.map(({ name, component }) =>
-              h('button', {
-                type: 'button',
-                title: name,
-                class: [
-                  'flex items-center justify-center p-2 rounded-md border transition-colors',
-                  props.editIcon === name
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'hover:bg-accent border-transparent',
-                ],
-                onClick: () => emit('update:editIcon', props.editIcon === name ? null : name),
-              }, [h(component, { class: 'h-4 w-4' })])
-            )
-          ),
-        ]);
-      }
-
-      return h('div', { class: 'flex items-center gap-3 rounded-md border px-3 py-2.5' }, [
-        iconComp.value
-          ? h(iconComp.value, { class: 'h-4 w-4 text-muted-foreground shrink-0' })
-          : h(ChevronRight, { class: 'h-4 w-4 text-muted-foreground shrink-0' }),
-        h('span', { class: 'flex-1 text-sm font-medium' }, props.section.name),
-        h('button', { class: 'p-1 text-muted-foreground hover:text-foreground', onClick: () => emit('start-edit') },
-          [h(Pencil, { class: 'h-3.5 w-3.5' })]),
-        h('button', { class: 'p-1 text-muted-foreground hover:text-destructive', onClick: () => emit('delete') },
-          [h(Trash2, { class: 'h-3.5 w-3.5' })]),
-      ]);
-    };
-  },
-});
-
-export default { components: { IconPicker, SectionRow } };
-</script>
